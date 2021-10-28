@@ -12,26 +12,36 @@ from sklearn.datasets import make_classification
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from matplotlib import pyplot
+from sklearn.model_selection import train_test_split
 
 data = pd.read_csv("fetal_health.csv")
 X, y = data.iloc[:,:-1], data['fetal_health'] 
 
 
+
+#%% 
  
 # get a list of models to evaluate
-def get_models():
-	models = dict()
-	for p in [0.0, 0.0001, 0.001, 0.01, 0.1, 1.0]:
-		# create name for model
-		key = '%.4f' % p
-		# turn off penalty in some cases
-		if p == 0.0:
-			# no penalty in this case
-			models[key] = LogisticRegression(multi_class='multinomial', solver='lbfgs', penalty='none')
-		else:
-			models[key] = LogisticRegression(multi_class='multinomial', solver = 'lbfgs', penalty='l2', C=p)
-	return models
+def get_models(m):
+    models = dict()
+    if m == type(LogisticRegression()):
+        for p in [0.0, 0.0001, 0.001, 0.01, 0.1, 1.0]:
+           		# create name for model
+           		key = '%.4f' % p
+           		# turn off penalty in some cases
+           		if p == 0.0:
+           			# no penalty in this case
+           			models[key] = LogisticRegression(multi_class='multinomial', solver='lbfgs', penalty='none')
+           		else:
+           			models[key] = LogisticRegression(multi_class='multinomial', solver = 'lbfgs', penalty='l2', C=p)  
+    else:
+        #Number of tree estimators
+        for p in [100,500,1000]:
+            key = '%.4f' % p
+            models[key] = RandomForestClassifier(n_estimators = p)
+    return models
  
 # evaluate a give model using cross-validation
 def evaluate_model(model, X, y):
@@ -43,7 +53,7 @@ def evaluate_model(model, X, y):
  
 # define dataset
 # get the models to evaluate
-models = get_models()
+models = get_models(RandomForestClassifier())
 # evaluate the models and store results
 results, names = list(), list()
 for name, model in models.items():
@@ -57,3 +67,18 @@ for name, model in models.items():
 # plot model performance for comparison
 pyplot.boxplot(results, labels=names, showmeans=True)
 pyplot.show()
+
+
+
+# %% Testing on individual Random Forest
+rfc = RandomForestClassifier(n_estimators = 500)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y)
+rfc.fit(X_train, y_train)
+fi = rfc.feature_importances_
+# %%
+#Ploting the rf feature importances
+fig, ax = pyplot.subplots()
+fi = pd.Series(fi, index = X.columns).sort_values()
+fi.plot.barh(ax=ax)
+fig.tight_layout()

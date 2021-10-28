@@ -54,3 +54,5 @@ x = np.array(X_tsne[:,0])
 y2 = np.array(X_tsne[:,1])
 sns.scatterplot(x= x, y = y2 )
 
+
+
