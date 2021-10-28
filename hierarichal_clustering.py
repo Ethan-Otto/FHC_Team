@@ -15,8 +15,8 @@ import matplotlib.pyplot as plt
 
 data = pd.read_csv("fetal_health.csv")
 X = data
-X, y = data.iloc[:,:-1], data['fetal_health'] 
-X = scale(X)
+X_data, y = data.iloc[:,:-1], data['fetal_health'] 
+X = scale(X_data)
 
 y= y.map({1: "Normal", 2: "Suspect", 3: "Pathological" })
 
@@ -58,3 +58,21 @@ for i, link in enumerate(links):
     sns.scatterplot(x= x_p, y = y_p, hue = labels.astype(str), ax= axs[i])
     axs[i].title.set_text(link)
 plt.show()
+
+
+# %% Absolute Difference of Cluster feature means
+
+agg = AgglomerativeClustering(n_clusters = 2, linkage = 'ward')
+agg.fit(X_p)
+labels = agg.labels_
+
+X1 = X_p[labels == 0]
+X2 = X_p[labels == 1]
+
+diffs = abs(X1.mean(0) - X2.mean(0))
+
+diffs = pd.Series(diffs, index = X_data.columns).sort_values()
+diffs.plot.barh(y='ABS of Means')
+plt.title("Abs Diff between Cluster Feature Means")
+plt.tight_layout()
+
