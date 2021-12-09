@@ -13,10 +13,13 @@ from sklearn.preprocessing import scale
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-data = pd.read_csv("fetal_health.csv")
-X = data
-X_data, y = data.iloc[:,:-1], data['fetal_health'] 
-X = scale(X_data)
+data = pd.read_csv("second_dataset.csv")
+X = data.iloc[:, :21]
+X = X.drop("fetal_movement",axis= 1)
+X_data = X
+y =  data['fetal_health']
+
+X = scale(X)
 
 y= y.map({1: "Normal", 2: "Suspect", 3: "Pathological" })
 
@@ -49,7 +52,7 @@ fig, axs = plt.subplots(ncols=4)
 links = ['single', 'complete', 'average', 'ward']
 plt.title("Hierarichal Clustering Projected on Tsne")
 for i, link in enumerate(links):
-    agg = AgglomerativeClustering(n_clusters = 3, linkage = link)
+    agg = AgglomerativeClustering(n_clusters = 2, linkage = link)
     agg.fit(X_p)
     labels = agg.labels_
     X_tsne = TSNE(random_state=105).fit_transform(X[y=='Pathological', :])
@@ -98,6 +101,8 @@ sns.scatterplot(x= t1, y = t2 , hue=labels)
 # %% Post Clustering Selection
 
 feats = list(diffs[-2:].index)
+feats = ['percentage_of_time_with_abnormal_long_term_variability',diffs[-1:].index[0] ]
+
 X_2 = np.array(X_data[feats])
 X_2 = X_2[y=='Pathological', :]
 X_2 = scale(X_2)
@@ -116,3 +121,6 @@ plt.xlabel(feats[0])
 plt.ylabel(feats[1])
 sns.scatterplot(x=t1, y = t2 , hue=labels)
 
+#%%
+
+sns.clustermap(X_data.corr())
